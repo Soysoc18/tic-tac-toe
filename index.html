@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Tic Tac Toe game - Play vs Player or Computer. Free web-based game with language selection."/>
+  <title>Tic Tac Toe</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h1 { margin-top: 30px; }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: white;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 1.2rem;
+    }
+    select, button {
+      margin: 10px;
+      padding: 8px 12px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe</h1>
+
+  <div>
+    <select id="language">
+      <option value="en">English</option>
+      <option value="bn">বাংলা</option>
+      <option value="es">Español</option>
+      <option value="fr">Français</option>
+      <!-- আরো ভাষা যোগ করা যাবে -->
+    </select>
+    <button onclick="setMode('player')">Player vs Player</button>
+    <button onclick="setMode('ai')">Player vs AI</button>
+  </div>
+
+  <div class="board" id="board"></div>
+  <div id="status"></div>
+
+  <audio id="winSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    const statusEl = document.getElementById('status');
+    const winSound = document.getElementById('winSound');
+    let board = ["", "", "", "", "", "", "", "", ""];
+    let currentPlayer = "X";
+    let gameActive = true;
+    let gameMode = "player";
+
+    const winningCombinations = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
+    ];
+
+    function renderBoard() {
+      boardEl.innerHTML = '';
+      board.forEach((cell, index) => {
+        const div = document.createElement('div');
+        div.className = 'cell';
+        div.textContent = cell;
+        div.onclick = () => handleClick(index);
+        boardEl.appendChild(div);
+      });
+    }
+
+    function handleClick(index) {
+      if (!gameActive || board[index]) return;
+      board[index] = currentPlayer;
+      renderBoard();
+      if (checkWin()) {
+        statusEl.textContent = `${currentPlayer} wins! 🎉`;
+        winSound.play();
+        gameActive = false;
+        return;
+      }
+      if (!board.includes("")) {
+        statusEl.textContent = "It's a draw!";
+        return;
+      }
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+      if (gameMode === "ai" && currentPlayer === "O") {
+        aiMove();
+      }
+    }
+
+    function checkWin() {
+      return winningCombinations.some(comb => 
+        comb.every(index => board[index] === currentPlayer)
+      );
+    }
+
+    function aiMove() {
+      let empty = board.map((v, i) => v === "" ? i : null).filter(v => v !== null);
+      let choice = empty[Math.floor(Math.random() * empty.length)];
+      setTimeout(() => handleClick(choice), 500);
+    }
+
+    function setMode(mode) {
+      gameMode = mode;
+      resetGame();
+    }
+
+    function resetGame() {
+      board = ["", "", "", "", "", "", "", "", ""];
+      currentPlayer = "X";
+      gameActive = true;
+      statusEl.textContent = "";
+      renderBoard();
+    }
+
+    document.getElementById("language").addEventListener("change", (e) => {
+      alert("Language switched to: " + e.target.options[e.target.selectedIndex].text);
+      // ভবিষ্যতে Google Translate API বা json dict দিয়ে ভাষা পরিবর্তন বাস্তবায়ন করা যাবে
+    });
+
+    renderBoard();
+  </script>
+</body>
+</html>
